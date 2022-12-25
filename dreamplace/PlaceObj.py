@@ -246,7 +246,9 @@ class PlaceObj(nn.Module):
             params, placedb, self.data_collections)
         self.op_collections.noise_op = self.build_noise(
             params, placedb, self.data_collections)
-        if params.routability_opt_flag:
+        
+        # register ops ignoring flag——hint from classmate
+        if True or params.routability_opt_flag:
             # compute congestion map, RISA/RUDY congestion map
             self.op_collections.rudy_utilization_map_op = self.build_rudy_utilization_map(
                 params, placedb, self.data_collections)
@@ -1050,7 +1052,32 @@ class PlaceObj(nn.Module):
         """
         ############## Your code block begins here ##############
         # hint: You can use the density_map op for fixed_node_map_op
-        return None 
+        return ml_congestion.MLCongestion(
+            fixed_node_map_op=density_map.DensityMap(
+                node_size_x=data_collections.node_size_x,
+                node_size_y=data_collections.node_size_y,
+                xl=placedb.routing_grid_xl,
+                yl=placedb.routing_grid_yl,
+                xh=placedb.routing_grid_xh,
+                yh=placedb.routing_grid_yh,
+                num_bins_x=placedb.num_routing_grids_x,
+                num_bins_y=placedb.num_routing_grids_y,
+                range_list=[[0, placedb.num_movable_nodes], [data_collections.node_size_x.numel() - placedb.num_filler_nodes, data_collections.node_size_x.numel()]],
+                deterministic_flag=params.deterministic_flag
+                ),
+            rudy_utilization_map_op=self.op_collections.rudy_utilization_map_op,
+            pinrudy_utilization_map_op=self.op_collections.pinrudy_utilization_map_op,
+            pin_pos_op=self.op_collections.pin_pos_op,
+            xl=placedb.routing_grid_xl, 
+            yl=placedb.routing_grid_yl,
+            xh=placedb.routing_grid_xh,
+            yh=placedb.routing_grid_yh,
+            num_bins_x=self.num_bins_x,
+            num_bins_y=self.num_bins_y,
+            unit_horizontal_capacity=placedb.unit_horizontal_capacity,
+            unit_vertical_capacity=placedb.unit_vertical_capacity,
+            pretrained_ml_congestion_weight_file=params.pretrained_ml_congestion_weight_file
+            )
         ############## Your code block ends here ################
 
     def build_adjust_node_area(self, params, placedb, data_collections):
@@ -1124,7 +1151,7 @@ class PlaceObj(nn.Module):
             fence_region_mask=self.data_collections.node2fence_region_map<1e3) # density penalty for outer cells
 
     def build_multi_fence_region_density_op(self):
-        # region 0, ..., region n, non_fence_region
+        ## region 0, ..., region n, non_fence_region
         self.op_collections.fence_region_density_ops = []
 
         for i, fence_region in enumerate(self.data_collections.virtual_macro_fence_region[:-1]):

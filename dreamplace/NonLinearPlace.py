@@ -665,6 +665,34 @@ class NonLinearPlace(BasicPlace.BasicPlace):
             logging.info(cur_metric)
             iteration += 1
 
+        pos = self.pos[0]
+        # print(model.op_collections.ml_congestion_map_op)
+        congestion_map = model.op_collections.ml_congestion_map_op(pos)
+        # print(congestion_map)
+        # assert False
+
+        sorted_congestion_map = np.sort(torch.flatten(congestion_map).cpu().detach().numpy())[::-1]
+        len_var = sorted_congestion_map.shape[0]
+        # print(sorted_congestion_map)
+        import math 
+        checkpoints = [int(math.ceil(len_var*i)) for i in [0.005, 0.01, 0.02, 0.05]]
+
+        cong = np.mean([sorted_congestion_map[checkpoint-1] for checkpoint in checkpoints])
+        cong = cong * 100
+        hpwl = cur_metric.hpwl
+        shpwl = hpwl * (1 + 0.03 * 100 * cong)
+        if params.shpwl_output_flag:
+            with open("pretrained_cong.log", "a+") as f:
+            # with open("finetuned_cong.log", "a+") as f:
+                # f.write("-----------------------------------------\n")
+                f.write(f"{cong}\n")
+                # f.write("-----------------------------------------\n")
+            with open("pretrained_shpwl.log", "a+") as f:
+            # with open("finetuned_shpwl.log", "a+") as f:
+                f.write(f"{shpwl}\n")
+        
+        assert False
+
         # plot placement
         if params.plot_flag:
             self.plot(params, placedb, iteration, self.pos[0].data.clone().cpu().numpy())
@@ -672,6 +700,7 @@ class NonLinearPlace(BasicPlace.BasicPlace):
         # dump legalization solution for detailed placement
         if params.dump_legalize_solution_flag:
             self.dump(params, placedb, self.pos[0].cpu(), "%s.dp.pklz" % (params.design_name()))
+
 
         # detailed placement
         if params.detailed_place_flag:
@@ -695,4 +724,6 @@ class NonLinearPlace(BasicPlace.BasicPlace):
         # plot placement
         if params.plot_flag:
             self.plot(params, placedb, iteration, cur_pos)
+
+        
         return all_metrics

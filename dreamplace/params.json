@@ -146,7 +146,7 @@
     },
 "routability_opt_flag" : {
     "descripton" : "whether enable routability optimization", 
-    "default" : 0
+    "default" : 1
     },
 "route_num_bins_x" : {
     "descripton" : "number of routing grids/tiles", 
@@ -170,7 +170,7 @@
     },
 "adjust_ml_congestion_area_flag" : {
     "descripton" : "whether use machine learning congestion map to guide area adjustment", 
-    "default" : 0
+    "default" : 1
     },
 "adjust_rudy_area_flag" : {
     "descripton" : "whether use RUDY/RISA map to guide area adjustment", 
@@ -194,7 +194,7 @@
     },
 "num_routing_layers" : {
     "descripton" : "number of metal layers for routing (excluding via layers)", 
-    "default" : 1
+    "default" : 5
     },
 "unit_horizontal_capacity" : {
     "descripton" : "number of horizontal routing tracks per unit distance for all layers (sum)", 
@@ -202,7 +202,7 @@
     },
 "unit_horizontal_capacities" : {
     "descripton" : "number of horizontal routing tracks per unit distance for each layer", 
-    "default" : []
+    "default" : [0.005, 0, 0.005, 0, 0.005]
     },
 "unit_vertical_capacity" : {
     "descripton" : "number of vertical routing tracks per unit distance for all layesr (sum)", 
@@ -210,7 +210,7 @@
     },
 "unit_vertical_capacities" : {
     "descripton" : "number of vertical routing tracks per unit distance for each layer", 
-    "default" : []
+    "default" : [0, 0.005, 0, 0.005, 0]
     },
 "unit_pin_capacity" : {
     "descripton" : "number of pins per unit area", 
@@ -234,10 +234,14 @@
     }, 
 "pretrained_ml_congestion_weight_file" : {
     "descripton" : "file path for pretrained weights of the machine learning model", 
-    "default" : ""
+    "default" : "./trained_200000.pth"
     }, 
 "deterministic_flag" : {
     "descripton" : "whether require run-to-run determinism, may have efficiency overhead", 
     "default" : 0
-    }
+    },
+"shpwl_output_flag" : {
+    "descripton" : "whether output the shpwl and cong to logfile", 
+    "default" : 1
+}
 }

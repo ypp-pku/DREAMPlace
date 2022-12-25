@@ -14,6 +14,7 @@ import pdb
 import dreamplace.ops.rudy.rudy as rudy
 import dreamplace.ops.pinrudy.pinrudy as pinrudy
 ############## Your code block begins here ##############
+from dreamplace.gpdl import GPDL
 # import your ML model 
 ############## Your code block ends here ################
 
@@ -50,6 +51,23 @@ class MLCongestion(nn.Module):
                  pretrained_ml_congestion_weight_file):
         super(MLCongestion, self).__init__()
         ############## Your code block begins here ##############
+        self.fixed_node_map_op = fixed_node_map_op
+        self.rudy_utilization_map_op = rudy_utilization_map_op
+        self.pinrudy_utilization_map_op = pinrudy_utilization_map_op
+        self.pin_pos_op = pin_pos_op
+        self.xl = xl
+        self.xh = xh
+        self.yl = yl
+        self.yh = yh
+        self.num_bins_x = num_bins_x
+        self.num_bins_y = num_bins_y
+        self.unit_horizontal_capacity = unit_horizontal_capacity
+        self.unit_vertical_capacity = unit_vertical_capacity
+        self.pretrained_ml_congestion_weight_file = pretrained_ml_congestion_weight_file
+
+        self.gpdl = GPDL()
+        self.gpdl.init_weights(pretrained=pretrained_ml_congestion_weight_file)
+        self.gpdl.eval()
         ############## Your code block ends here ################
 
     def __call__(self, pos):
@@ -57,5 +75,14 @@ class MLCongestion(nn.Module):
 
     def forward(self, pos):
         ############## Your code block begins here ##############
-        return None
+        macro_map = self.fixed_node_map_op(pos)
+        rudy_map = self.rudy_utilization_map_op(pos)
+        rudy_pin_map = self.pinrudy_utilization_map_op(pos)
+        feature_list = [macro_map, rudy_map, rudy_pin_map]
+        feature_map = torch.stack(feature_list, dim=0).unsqueeze(0)
+        self.gpdl.to(feature_map.device)
+        cong_map = torch.squeeze(self.gpdl(feature_map)).add_(1)    # a hint from my classmate
+        # cong_map = torch.squeeze(self.gpdl(feature_map))
+        
+        return cong_map
         ############## Your code block ends here ################
